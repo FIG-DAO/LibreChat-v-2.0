@@ -2,25 +2,31 @@
 <html lang="en-US">
   <head>
     <meta charset="utf-8" />
-    <meta name="theme-color" content="#171717" />
+    <meta name="theme-color" content="#0d0d0d" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="description" content="LibreChat - An open source chat application with support for multiple AI models" />
-    <title>LibreChat</title>
-    <link rel="shortcut icon" href="#" />
+    <meta name="description" content="Leo Platform – AI-стратегия, агенты, наблюдение, масштабирование" />
+    <meta name="keywords" content="Leo Core, AI Platform, LibreChat Custom, Homestead Road, AI Agents" />
+    <title>Leo Platform</title>
+
+    <!-- 🧠 Favicon и иконки -->
+    <link rel="shortcut icon" href="/assets/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/favicon-16x16.png" />
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon-180x180.png" />
+
+    <!-- 📱 Mobile -->
     <meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content" />
+
     <style>
-      html,
-      body {
+      html, body {
         margin: 0;
         padding: 0;
         height: 100%;
       }
     </style>
+
     <script>
       const theme = localStorage.getItem('color-theme');
       const loadingContainerStyle = document.createElement('style');
@@ -48,6 +54,7 @@
       `;
       document.head.appendChild(loadingContainerStyle);
     </script>
+
     <script defer type="module" src="/src/main.jsx"></script>
   </head>
   <body>
