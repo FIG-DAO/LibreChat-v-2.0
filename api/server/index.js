@@ -24,6 +24,7 @@ const AppService = require('./services/AppService');
 const staticCache = require('./utils/staticCache');
 const noIndex = require('./middleware/noIndex');
 const routes = require('./routes');
+const agentsRoute = require('./routes/agents');
 
 // ✅ Leo Core routes from /api/Routes/
 const feedbackRoute = require('./Routes/feedback'); // 👈
@@ -63,6 +64,7 @@ const startServer = async () => {
   app.set('trust proxy', trusted_proxy);
   app.use(cors());
   app.use(cookieParser());
+  app.use('/api/agents', agentsRoute);
 
   if (!isEnabled(DISABLE_COMPRESSION)) {
     app.use(compression());
