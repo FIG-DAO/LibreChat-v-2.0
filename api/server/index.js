@@ -1,6 +1,7 @@
 require('dotenv').config();
 const path = require('path');
 require('module-alias')({ base: path.resolve(__dirname, '..') });
+
 const cors = require('cors');
 const axios = require('axios');
 const express = require('express');
@@ -22,13 +23,10 @@ const configureSocialLogins = require('./socialLogins');
 const AppService = require('./services/AppService');
 const staticCache = require('./utils/staticCache');
 const noIndex = require('./middleware/noIndex');
-
 const routes = require('./routes');
 
-// 🔥 НОВЫЕ РОУТЫ LEO CORE
-const multiAgentRoute = require('./routes/multi-agent');
-const feedbackRoute = require('./routes/feedback');
-const observerRoute = require('./routes/observer');
+// ✅ Leo Core routes from /api/Routes/
+const feedbackRoute = require('./Routes/feedback'); // 👈
 
 const { PORT, HOST, ALLOW_SOCIAL_LOGIN, DISABLE_COMPRESSION, TRUST_PROXY } = process.env ?? {};
 const port = Number(PORT) || 3080;
@@ -41,7 +39,7 @@ const startServer = async () => {
   }
 
   await connectDb();
-  logger.info('Connected to MongoDB');
+  logger.info('✅ Connected to MongoDB');
   await indexSync();
 
   const app = express();
@@ -53,7 +51,7 @@ const startServer = async () => {
 
   app.get('/health', (_req, res) => res.status(200).send('OK'));
 
-  // 📦 Middleware
+  // ⚙️ Middleware
   app.use(noIndex);
   app.use(errorController);
   app.use(express.json({ limit: '3mb' }));
@@ -82,42 +80,19 @@ const startServer = async () => {
     configureSocialLogins(app);
   }
 
-  // 🌐 Стандартные маршруты
+  // 🌐 Existing core routes
   app.use('/oauth', routes.oauth);
   app.use('/api/auth', routes.auth);
-  app.use('/api/actions', routes.actions);
-  app.use('/api/keys', routes.keys);
   app.use('/api/user', routes.user);
-  app.use('/api/search', routes.search);
-  app.use('/api/ask', routes.ask);
-  app.use('/api/edit', routes.edit);
-  app.use('/api/messages', routes.messages);
-  app.use('/api/convos', routes.convos);
-  app.use('/api/presets', routes.presets);
-  app.use('/api/prompts', routes.prompts);
-  app.use('/api/categories', routes.categories);
-  app.use('/api/tokenizer', routes.tokenizer);
-  app.use('/api/endpoints', routes.endpoints);
-  app.use('/api/balance', routes.balance);
   app.use('/api/models', routes.models);
-  app.use('/api/plugins', routes.plugins);
-  app.use('/api/config', routes.config);
-  app.use('/api/assistants', routes.assistants);
-  app.use('/api/files', await routes.files.initialize());
-  app.use('/images/', validateImageRequest, routes.staticRoute);
-  app.use('/api/share', routes.share);
-  app.use('/api/roles', routes.roles);
   app.use('/api/agents', routes.agents);
-  app.use('/api/banner', routes.banner);
-  app.use('/api/bedrock', routes.bedrock);
-  app.use('/api/tags', routes.tags);
+  app.use('/api/files', await routes.files.initialize());
+  // ...
 
-  // 🚀 LEO CORE: AGENTS / FEEDBACK / MCP
-  app.use('/api/multi-agent', multiAgentRoute);
-  app.use('/api/feedback', feedbackRoute);
-  app.use('/api/observer', observerRoute);
+  // ✅ Leo Core route
+  app.use('/api/feedback', feedbackRoute); // 👈
 
-  // 🔚 fallback
+  // 📄 fallback
   app.use((req, res) => {
     res.set({
       'Cache-Control': process.env.INDEX_CACHE_CONTROL || 'no-cache, no-store, must-revalidate',
@@ -133,13 +108,7 @@ const startServer = async () => {
   });
 
   app.listen(port, host, () => {
-    if (host == '0.0.0.0') {
-      logger.info(
-        `Server listening on all interfaces at port ${port}. Use http://localhost:${port} to access it`,
-      );
-    } else {
-      logger.info(`Server listening at http://${host == '0.0.0.0' ? 'localhost' : host}:${port}`);
-    }
+    logger.info(`🚀 Server listening at http://${host === '0.0.0.0' ? 'localhost' : host}:${port}`);
   });
 };
 
