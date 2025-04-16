@@ -5,16 +5,37 @@ import { Accordion, AccordionItem, AccordionContent } from '~/components/ui/Acco
 import { TooltipAnchor, Button } from '~/components';
 import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';
+import { useNavigate } from 'react-router-dom';
 
 export default function Nav({ links, isCollapsed, resize, defaultActive }: NavProps) {
   const localize = useLocalize();
+  const navigate = useNavigate();
   const [active, _setActive] = useState<string | undefined>(defaultActive);
+
   const getVariant = (link: NavLink) => (link.id === active ? 'default' : 'ghost');
 
   const setActive = (id: string) => {
     localStorage.setItem('side:active-panel', id + '');
     _setActive(id);
   };
+
+  // 🔥 Добавленные кастомные ссылки Leo Platform
+  const customLinks = [
+    {
+      id: 'leo-core',
+      title: 'Leo Core',
+      icon: () => <span className="mr-1">🧠</span>,
+      onClick: () => navigate('/leo'),
+    },
+    {
+      id: 'admin-panel',
+      title: 'Admin Panel',
+      icon: () => <span className="mr-1">🔧</span>,
+      onClick: () => navigate('/admin'),
+    },
+  ];
+
+  const fullLinks = [...customLinks, ...links];
 
   return (
     <div
@@ -26,7 +47,7 @@ export default function Nav({ links, isCollapsed, resize, defaultActive }: NavPr
           <div className="flex h-full min-h-0 flex-col opacity-100 transition-opacity">
             <div className="scrollbar-trigger relative h-full w-full flex-1 items-start border-white/20">
               <div className="flex h-full w-full flex-col gap-1 px-3 py-2.5 group-[[data-collapsed=true]]:items-center group-[[data-collapsed=true]]:justify-center group-[[data-collapsed=true]]:px-2">
-                {links.map((link, index) => {
+                {fullLinks.map((link, index) => {
                   const variant = getVariant(link);
                   return isCollapsed ? (
                     <TooltipAnchor
