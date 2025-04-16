@@ -18,6 +18,11 @@ import ChatRoute from './ChatRoute';
 import Search from './Search';
 import Root from './Root';
 
+// 👉 Новые Leo модули
+import LeoHub from './LeoHub';
+import AdminDashboard from './AdminDashboard';
+import LeoPresetsManager from './LeoPresetsManager';
+
 const AuthLayout = () => (
   <AuthContextProvider>
     <Outlet />
@@ -89,6 +94,18 @@ export const router = createBrowserRouter([
           {
             path: 'search',
             element: <Search />,
+          },
+          {
+            path: 'leo',
+            element: <LeoHub />,
+          },
+          {
+            path: 'admin',
+            element: <AdminDashboard />,
+          },
+          {
+            path: 'leo-presets',
+            element: <LeoPresetsManager />,
           },
         ],
       },
