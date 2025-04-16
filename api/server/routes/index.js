@@ -1,59 +1,63 @@
+const actions = require('./actions');
+const agents = require('./agents');
 const assistants = require('./assistants');
+const auth = require('./auth');
+const balance = require('./balance');
+const banner = require('./banner');
+const bedrock = require('./bedrock');
 const categories = require('./categories');
-const tokenizer = require('./tokenizer');
+const config = require('./config');
+const convos = require('./convos');
+const edit = require('./edit');
 const endpoints = require('./endpoints');
-const staticRoute = require('./static');
+const files = require('./files');
+const keys = require('./keys');
 const messages = require('./messages');
+const models = require('./models');
+const oauth = require('./oauth');
+const plugins = require('./plugins');
 const presets = require('./presets');
 const prompts = require('./prompts');
-const balance = require('./balance');
-const plugins = require('./plugins');
-const bedrock = require('./bedrock');
-const actions = require('./actions');
-const search = require('./search');
-const models = require('./models');
-const convos = require('./convos');
-const config = require('./config');
-const agents = require('./agents');
 const roles = require('./roles');
-const oauth = require('./oauth');
-const files = require('./files');
+const search = require('./search');
 const share = require('./share');
+const staticRoute = require('./static');
 const tags = require('./tags');
-const auth = require('./auth');
-const edit = require('./edit');
-const keys = require('./keys');
+const tokenizer = require('./tokenizer');
 const user = require('./user');
 const ask = require('./ask');
-const banner = require('./banner');
+
+// 👇 Если позже подключаешь лево-пресеты:
+// const leoPresets = require('./leoPresets');
 
 module.exports = {
-  ask,
-  edit,
-  auth,
-  keys,
-  user,
-  tags,
-  roles,
-  oauth,
-  files,
-  share,
-  agents,
-  bedrock,
-  convos,
-  search,
-  prompts,
-  config,
-  models,
-  plugins,
   actions,
-  presets,
-  balance,
-  messages,
-  endpoints,
-  tokenizer,
+  agents,
   assistants,
-  categories,
-  staticRoute,
+  auth,
+  balance,
   banner,
+  bedrock,
+  categories,
+  config,
+  convos,
+  edit,
+  endpoints,
+  files,
+  keys,
+  messages,
+  models,
+  oauth,
+  plugins,
+  presets,
+  prompts,
+  roles,
+  search,
+  share,
+  staticRoute,
+  tags,
+  tokenizer,
+  user,
+  ask,
+  // leoPresets, // 👉 Подключаешь при необходимости
 };
