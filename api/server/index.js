@@ -9,29 +9,37 @@ const passport = require('passport');
 const mongoSanitize = require('express-mongo-sanitize');
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
+
 const { jwtLogin, passportLogin } = require('~/strategies');
 const { connectDb, indexSync } = require('~/lib/db');
 const { isEnabled } = require('~/server/utils');
 const { ldapLogin } = require('~/strategies');
 const { logger } = require('~/config');
+
 const validateImageRequest = require('./middleware/validateImageRequest');
 const errorController = require('./controllers/ErrorController');
 const configureSocialLogins = require('./socialLogins');
 const AppService = require('./services/AppService');
 const staticCache = require('./utils/staticCache');
 const noIndex = require('./middleware/noIndex');
+
 const routes = require('./routes');
 
-const { PORT, HOST, ALLOW_SOCIAL_LOGIN, DISABLE_COMPRESSION, TRUST_PROXY } = process.env ?? {};
+// 🔥 НОВЫЕ РОУТЫ LEO CORE
+const multiAgentRoute = require('./routes/multi-agent');
+const feedbackRoute = require('./routes/feedback');
+const observerRoute = require('./routes/observer');
 
+const { PORT, HOST, ALLOW_SOCIAL_LOGIN, DISABLE_COMPRESSION, TRUST_PROXY } = process.env ?? {};
 const port = Number(PORT) || 3080;
 const host = HOST || 'localhost';
-const trusted_proxy = Number(TRUST_PROXY) || 1; /* trust first proxy by default */
+const trusted_proxy = Number(TRUST_PROXY) || 1;
 
 const startServer = async () => {
   if (typeof Bun !== 'undefined') {
     axios.defaults.headers.common['Accept-Encoding'] = 'gzip';
   }
+
   await connectDb();
   logger.info('Connected to MongoDB');
   await indexSync();
@@ -45,7 +53,7 @@ const startServer = async () => {
 
   app.get('/health', (_req, res) => res.status(200).send('OK'));
 
-  /* Middleware */
+  // 📦 Middleware
   app.use(noIndex);
   app.use(errorController);
   app.use(express.json({ limit: '3mb' }));
@@ -62,18 +70,10 @@ const startServer = async () => {
     app.use(compression());
   }
 
-  if (!ALLOW_SOCIAL_LOGIN) {
-    console.warn(
-      'Social logins are disabled. Set Environment Variable "ALLOW_SOCIAL_LOGIN" to true to enable them.',
-    );
-  }
-
-  /* OAUTH */
   app.use(passport.initialize());
   passport.use(await jwtLogin());
   passport.use(passportLogin());
 
-  /* LDAP Auth */
   if (process.env.LDAP_URL && process.env.LDAP_USER_SEARCH_BASE) {
     passport.use(ldapLogin);
   }
@@ -82,8 +82,8 @@ const startServer = async () => {
     configureSocialLogins(app);
   }
 
+  // 🌐 Стандартные маршруты
   app.use('/oauth', routes.oauth);
-  /* API Endpoints */
   app.use('/api/auth', routes.auth);
   app.use('/api/actions', routes.actions);
   app.use('/api/keys', routes.keys);
@@ -110,9 +110,14 @@ const startServer = async () => {
   app.use('/api/agents', routes.agents);
   app.use('/api/banner', routes.banner);
   app.use('/api/bedrock', routes.bedrock);
-
   app.use('/api/tags', routes.tags);
 
+  // 🚀 LEO CORE: AGENTS / FEEDBACK / MCP
+  app.use('/api/multi-agent', multiAgentRoute);
+  app.use('/api/feedback', feedbackRoute);
+  app.use('/api/observer', observerRoute);
+
+  // 🔚 fallback
   app.use((req, res) => {
     res.set({
       'Cache-Control': process.env.INDEX_CACHE_CONTROL || 'no-cache, no-store, must-revalidate',
@@ -139,40 +144,3 @@ const startServer = async () => {
 };
 
 startServer();
-
-let messageCount = 0;
-process.on('uncaughtException', (err) => {
-  if (!err.message.includes('fetch failed')) {
-    logger.error('There was an uncaught error:', err);
-  }
-
-  if (err.message.includes('abort')) {
-    logger.warn('There was an uncatchable AbortController error.');
-    return;
-  }
-
-  if (err.message.includes('GoogleGenerativeAI')) {
-    logger.warn(
-      '\n\n`GoogleGenerativeAI` errors cannot be caught due to an upstream issue, see: https://github.com/google-gemini/generative-ai-js/issues/303',
-    );
-    return;
-  }
-
-  if (err.message.includes('fetch failed')) {
-    if (messageCount === 0) {
-      logger.warn('Meilisearch error, search will be disabled');
-      messageCount++;
-    }
-
-    return;
-  }
-
-  if (err.message.includes('OpenAIError') || err.message.includes('ChatCompletionMessage')) {
-    logger.error(
-      '\n\nAn Uncaught `OpenAIError` error may be due to your reverse-proxy setup or stream configuration, or a bug in the `openai` node package.',
-    );
-    return;
-  }
-
-  process.exit(1);
-});
