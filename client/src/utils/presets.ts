@@ -3,7 +3,7 @@ import { EModelEndpoint } from 'librechat-data-provider';
 
 type TEndpoints = Array<string | EModelEndpoint>;
 
-export const getPresetTitle = (preset: TPreset, mention?: boolean) => {
+export const getPresetTitle = (preset: TPreset, mention?: boolean): string => {
   const {
     endpoint,
     title: presetTitle,
@@ -13,6 +13,7 @@ export const getPresetTitle = (preset: TPreset, mention?: boolean) => {
     chatGptLabel,
     modelLabel,
   } = preset;
+
   const modelInfo = model ?? '';
   let title = '';
   let label = '';
@@ -24,38 +25,33 @@ export const getPresetTitle = (preset: TPreset, mention?: boolean) => {
   ];
   const usesModelLabel: TEndpoints = [EModelEndpoint.google, EModelEndpoint.anthropic];
 
-  if (endpoint != null && endpoint && usesChatGPTLabel.includes(endpoint)) {
+  if (endpoint && usesChatGPTLabel.includes(endpoint)) {
     label = chatGptLabel ?? '';
-  } else if (endpoint != null && endpoint && usesModelLabel.includes(endpoint)) {
+  } else if (endpoint && usesModelLabel.includes(endpoint)) {
     label = modelLabel ?? '';
   }
-  if (
-    label &&
-    presetTitle != null &&
-    presetTitle &&
-    label.toLowerCase().includes(presetTitle.toLowerCase())
-  ) {
-    title = label + ': ';
+
+  if (label && presetTitle?.trim() && label.toLowerCase().includes(presetTitle.toLowerCase())) {
+    title = `${label}: `;
     label = '';
-  } else if (presetTitle != null && presetTitle && presetTitle.trim() !== 'New Chat') {
-    title = presetTitle + ': ';
+  } else if (presetTitle?.trim() && presetTitle.trim() !== 'New Chat') {
+    title = `${presetTitle}: `;
   }
 
+  // Leo mode → show compact + context if needed
   if (mention === true) {
-    return `${modelInfo}${label ? ` | ${label}` : ''}${
-      promptPrefix != null && promptPrefix ? ` | ${promptPrefix}` : ''
-    }${
-      tools
-        ? ` | ${tools
-          .map((tool: TPlugin | string) => {
-            if (typeof tool === 'string') {
-              return tool;
-            }
-            return tool.pluginKey;
-          })
-          .join(', ')}`
-        : ''
-    }`;
+    const extras = [];
+
+    if (label) extras.push(label);
+    if (promptPrefix) extras.push(promptPrefix);
+    if (tools && tools.length > 0) {
+      const toolNames = tools.map((tool) =>
+        typeof tool === 'string' ? tool : tool.pluginKey,
+      );
+      extras.push(toolNames.join(', '));
+    }
+
+    return [modelInfo, ...extras].filter(Boolean).join(' | ');
   }
 
   return `${title}${modelInfo}${label ? ` (${label})` : ''}`.trim();
@@ -65,27 +61,16 @@ export const getPresetTitle = (preset: TPreset, mention?: boolean) => {
 export const removeUnavailableTools = (
   preset: TPreset,
   availableTools: Record<string, TPlugin | undefined>,
-) => {
+): TPreset => {
   const newPreset = { ...preset };
 
-  if (newPreset.tools && newPreset.tools.length > 0) {
+  if (Array.isArray(newPreset.tools)) {
     newPreset.tools = newPreset.tools
       .filter((tool) => {
-        let pluginKey: string;
-        if (typeof tool === 'string') {
-          pluginKey = tool;
-        } else {
-          ({ pluginKey } = tool);
-        }
-
+        const pluginKey = typeof tool === 'string' ? tool : tool.pluginKey;
         return !!availableTools[pluginKey];
       })
-      .map((tool) => {
-        if (typeof tool === 'string') {
-          return tool;
-        }
-        return tool.pluginKey;
-      });
+      .map((tool) => (typeof tool === 'string' ? tool : tool.pluginKey));
   }
 
   return newPreset;
