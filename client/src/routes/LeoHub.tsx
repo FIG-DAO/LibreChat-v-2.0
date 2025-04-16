@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import MultiAgentRunner from '../components/MultiAgentRunner';
+import MultiAgentRunner from '../components/multi/MultiAgentRunner';
 
 const LeoHub = () => {
   const [query, setQuery] = useState('');
